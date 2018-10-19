@@ -67,11 +67,11 @@ function gameOver(){
 	ajax({action:'addScore',username:player_name,score:score,game:'snek'}).then(res=>{
 		if(top_score && score > top_score){
 			localStorage.getItem('top_score', score);
-			alert("You beat your personal top score!");
+			showMessage("You beat your personal top score!");
 		}
 		if(score > lowest_in_top){
 			loadTop15();
-			alert("You made it into the top 15!");
+			showMessage("You made it into the top 15!");
 		}
 	});
 }
@@ -152,15 +152,16 @@ function pointToLineDistance(point, line) {
 	return Math.sqrt(dx * dx + dy * dy);
 }
 
-function getPlayerName(){
+function getPlayerName(){	
+	player_name = document.getElementById("username").value;
+	if(player_name.length > 10 || player_name.length < 2) return showMessage("Username should be between 2 and 10 chars.");
+	localStorage.setItem('username', player_name);
+	setView();
+}
+
+function showPlayerName(){
 	document.getElementById('getname').style.display = "block";
 	document.getElementById('game').style.display = "none";
-	document.getElementById("nameform").addEventListener('submit', function(e){
-		e = e || window.event;
-		player_name = document.getElementById("username").value;
-		if(player_name.length > 10 || player_name.length < 2) return alert("Username should be between 2 and 10 chars.");
-		localStorage.setItem('username', player_name);
-	});
 }
 
 function showGame(){
@@ -192,6 +193,31 @@ function loadTop15(){
 	});
 }
 
+function showMessage(message){
+	var snekMessage = document.getElementById('snekMessage');
+	var content = snekMessage.getElementsByClassName('dialog-content')[0];
+
+	snekMessage.classList.add('activated-message');
+	content.innerHTML = message;
+}
+
+function hideMessage(){
+	snekMessage.classList.remove('activated-message');
+}
+
+var setView = function(){
+	player_name ? showGame() : showPlayerName(); 
+}
+
+function setDocument(){
+	var playButton = document.getElementById('playButton');
+	var okButton = document.getElementById('okButton');
+	playButton.onclick = getPlayerName;
+	okButton.onclick = hideMessage;
+	hideMessage
+	setView();
+}
+
 function ajax(params){
 	/**
 	 * Let's not be a dick with my server please :)
@@ -211,9 +237,6 @@ function ajax(params){
 	});
 }
 
-if(!player_name)getPlayerName();
-else showGame();
-
 document.getElementById('resolution').addEventListener('change', function() {
 	var selectedVal = document.getElementById('resolution').value.split('/');
 	var canvas = document.querySelector('canvas')
@@ -221,3 +244,5 @@ document.getElementById('resolution').addEventListener('change', function() {
 	canvas.height = selectedVal[0] === 'fullscreen' ? window.innerHeight - document.documentElement.offsetHeight + canvasHeight  : selectedVal[0];
 	canvas.width = selectedVal[0] === 'fullscreen' ? document.body.clientWidth : selectedVal[1];
 })
+
+window.onload = setDocument;
